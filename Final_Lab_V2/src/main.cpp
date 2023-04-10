@@ -9,6 +9,8 @@ Speed using a PID feedback loop. DATE: 4/10/2023 10:24
 */
 #include <Arduino.h>
 #include <math.h>
+#include <Servo.h>
+#include <VL53L0X.h>
 
 //int Led = 13 ;// define LED Interface
 int buttonpin = 3; // define D0 Sensor Interface
