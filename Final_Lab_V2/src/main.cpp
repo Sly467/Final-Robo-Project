@@ -9,6 +9,11 @@ Speed using a PID feedback loop. DATE: 4/10/2023
 */
 #include <Arduino.h>
 #include <math.h>
+#include <VL53L0X.h>
+
+
+VL53L0X sensor; //Lidar sensor
+uint16_t distance; // Stored distance
 
 //int Led = 13 ;// define LED Interface
 int buttonpin = 3; // define D0 Sensor Interface
@@ -270,6 +275,8 @@ int flag = 0;
 void setup ()
 {
 Serial.begin(115200);
+sensor.init();
+sensor.startContinuous();
  pinMode (buttonpin, INPUT) ;// output interface D0 is defined sensor
  //attachInterrupt(digitalPinToInterrupt(3), a1, FALLING);
  pinMode (46, INPUT);
@@ -295,8 +302,11 @@ void loop ()
   resetValues();
   resetEncoder();
   current_millis = millis();
+
+  distance = sensor.readRangeContinuousMillimeters();
+
      
-  while(/*lidar val*/>= /*desired distance val*/)
+  while( distance >= /*desired distance val*/)
   {
       setSpeed(PIDLW(), PIDRW());
   }
