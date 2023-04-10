@@ -5,7 +5,7 @@ Basic Robot Movement with a PID feedback:
 This code's purpose is to use rotary encoders
 (through the use of interupt functions) 
 to move the robot set distances while constantly updating PWM
-Speed using a PID feedback loop. DATE: 4/10/2023
+Speed using a PID feedback loop. DATE: 4/10/2023 10:24
 */
 #include <Arduino.h>
 #include <math.h>
