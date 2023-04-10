@@ -10,10 +10,17 @@ Speed using a PID feedback loop. DATE: 4/10/2023
 #include <Arduino.h>
 #include <math.h>
 #include <VL53L0X.h>
+#include <Servo.h>
 
 
 VL53L0X sensor; //Lidar sensor
 uint16_t distance; // Stored distance
+
+Servo gripper;
+int openNum = 45;
+int closeNum = 180;
+const char gripPin = 9;
+
 
 //int Led = 13 ;// define LED Interface
 int buttonpin = 3; // define D0 Sensor Interface
@@ -77,6 +84,23 @@ double arc_ticks = theta_rads * 2.5 * 24; // arc_length distance in ticks using 
  const int BIN2 = 36;
 
 int stopCounter = 0; //counter in charge of changing opperation of the bot
+
+void openGripper()
+{
+  for(int pos = closeNum; pos <= openNum; pos++){
+    gripper.write(pos);
+    delay(15);
+  }
+}
+
+void closeGripper()
+{
+  for (int pos = openNum; pos >= closeNum; pos--)
+  {
+    gripper.write(pos);
+    delay(15);
+  }
+}
 
 int PIDLW() // PID speed updater for LW
 {
@@ -274,6 +298,7 @@ int flag = 0;
 
 void setup ()
 {
+  gripper.attach(9);
 Serial.begin(115200);
 sensor.init();
 sensor.startContinuous();
@@ -317,6 +342,7 @@ void loop ()
  else if (flag == 1) //Second Step
  {
  //open gripper 
+ openGripper();
  
  //move forward slightly
    Forward();
@@ -334,7 +360,7 @@ void loop ()
   }
   stopRobot();
  //close gripper
-
+closeGripper();
 
  flag++;
  }
@@ -382,7 +408,7 @@ void loop ()
 else // final step and reset
 {
   //open gripper
-
+  openGripper();
   //reverse short distance
   Forward();
   speedLW = 100;
@@ -399,7 +425,7 @@ else // final step and reset
   }
   stopRobot();
   //close gripper
-  
+  closeGripper();
   //turn around
   Rotate_CCW();
   speedLW = 100;
