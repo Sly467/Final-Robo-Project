@@ -11,6 +11,7 @@ Speed using a PID feedback loop. DATE: 4/10/2023
 #include <math.h>
 #include <VL53L0X.h>
 #include <Servo.h>
+#include <Wire.h>
 
 
 VL53L0X sensor; //Lidar sensor
@@ -26,11 +27,6 @@ int temp_lw = 0;
 
 int dist_from_orig_RW = 0;
 int dist_from_orig_LW = 0;
-
-//int Led = 13 ;// define LED Interface
-int buttonpin = 3; // define D0 Sensor Interface
-bool val;// define numeric variables val
-int flag = 0;
 
 volatile unsigned int enc_LW; // LW Encoder tick counter
 volatile unsigned int enc_RW; // RW Encoder tick counter
@@ -100,7 +96,7 @@ bool dist_orig_check(int x, int y)
 
 void openGripper()
 {
-  for(int pos = closeNum; pos <= openNum; pos++){
+  for(int pos = closeNum; pos >= openNum; pos--){
     gripper.write(pos);
     delay(15);
   }
@@ -108,7 +104,7 @@ void openGripper()
 
 void closeGripper()
 {
-  for (int pos = openNum; pos >= closeNum; pos--)
+  for (int pos = openNum; pos <= closeNum; pos++)
   {
     gripper.write(pos);
     delay(15);
@@ -303,13 +299,13 @@ digitalWrite(BIN1,1);
 digitalWrite(BIN2,0);
 }
 //int Led = 13 ;// define LED Interface
-int buttonpin = 3; // define D0 Sensor Interface
+int buttonpin = 12; // define D0 Sensor Interface
 bool val;// define numeric variables val
 int flag = 0;
 
 void setup ()
 {
-  gripper.attach(9);
+gripper.attach(9);
 Serial.begin(115200);
 sensor.init();
 sensor.startContinuous();
@@ -318,6 +314,29 @@ sensor.startContinuous();
  pinMode (46, INPUT);
  pinMode (44, INPUT);
 }
+
+/*void loop()
+{
+    while (digitalRead(buttonpin)== LOW)
+    {
+      
+    }
+    if(flag == 0)
+    {
+      openGripper();
+      flag++;
+    }
+
+    else if (flag == 1)
+    {
+      closeGripper();
+      flag--;
+    }
+    
+
+}*/
+
+
 void loop ()
 {
  // digital interface will be assigned a value of pin 3 to read val
@@ -343,6 +362,7 @@ void loop ()
      
   while( sensor.readRangeContinuousMillimeters() >= 25)
   {
+      Serial.println(sensor.readRangeContinuousMillimeters());
       setSpeed(PIDLW(), PIDRW());
   }
   dist_from_orig_RW = enc_RW - temp_rw;
@@ -410,13 +430,8 @@ closeGripper();
   {
       setSpeed(PIDLW(), PIDRW());
   }
-
- 
- 
- 
- //detect object
-
-
+  dist_from_orig_LW = 0;
+  dist_from_orig_RW = 0;
 
  flag++;
  }
