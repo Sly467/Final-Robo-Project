@@ -279,6 +279,13 @@ digitalWrite(AIN2,1);
 digitalWrite(BIN1,0);
 digitalWrite(BIN2,1);
 }
+void Reverse() //sets both motors direction to allow bot to move forward
+{
+digitalWrite(AIN1,1);
+digitalWrite(AIN2,0);
+digitalWrite(BIN1,1);
+digitalWrite(BIN2,0);
+}
 
 void Rotate_CCW() //sets both motors direction to allow bot to rotate counter clockwise
 {
@@ -419,7 +426,7 @@ else // final step and reset
   //open gripper
   openGripper();
   //reverse short distance
-  Forward();
+  Reverse();
   speedLW = 100;
   speedRW = 100;
   setSpeed(speedLW, speedRW);
