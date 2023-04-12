@@ -21,6 +21,11 @@ int openNum = 45;
 int closeNum = 180;
 const char gripPin = 9;
 
+int temp_rw = 0;
+int temp_lw = 0;
+
+int dist_from_orig_RW = 0;
+int dist_from_orig_LW = 0;
 
 //int Led = 13 ;// define LED Interface
 int buttonpin = 3; // define D0 Sensor Interface
@@ -69,9 +74,9 @@ static int speedRW = 100;
 const double a = 39.3701; // side a of triangle in inches
 const double b = 78.7402; // side b of triangle in inches
 
-double hyp_ticks = 24 * sqrt((a*a)+(b*b)); // hypotenuse distance in ticks equation using a and b rectangle
-double theta_rads = atan(a/b); // angle theta using sides a and b of rectangle
-double arc_ticks = theta_rads * 2.5 * 24; // arc_length distance in ticks using theta
+//double hyp_ticks = 24 * sqrt((a*a)+(b*b)); // hypotenuse distance in ticks equation using a and b rectangle
+//double theta_rads = atan(a/b); // angle theta using sides a and b of rectangle
+//double arc_ticks = theta_rads * 2.5 * 24; // arc_length distance in ticks using theta
 
 // Motor A
  const int PWMA = 5;
@@ -84,6 +89,14 @@ double arc_ticks = theta_rads * 2.5 * 24; // arc_length distance in ticks using 
  const int BIN2 = 36;
 
 int stopCounter = 0; //counter in charge of changing opperation of the bot
+
+bool dist_orig_check(int x, int y)
+{
+    if((enc_LW >= x) || (enc_RW >= y))
+    return true;
+    else
+    return false;
+}
 
 void openGripper()
 {
@@ -224,18 +237,9 @@ void stopRobot() // stops both motors
   analogWrite(PWMB, 0);
 }
 
-bool hypt_check() //checks to see if the motors have reached a the length of hypotnuse
+bool grab_dist_check() //distance to move forward to grab or reverse to let go
 {
-    if((enc_LW >= hyp_ticks) || (enc_RW >= hyp_ticks))
-      return true;
-    else
-      return false;
-  
-}
-
-bool rot_check() //checks to see if the motors have reached 3 feet
-{
-    if((enc_LW >= arc_ticks) || (enc_RW >= arc_ticks))
+    if((enc_LW >= 38) || (enc_RW >= 38))
       return true;
     else
       return false;
@@ -262,10 +266,10 @@ void resetValues() //resets error values to 0
 
 bool halfBotRot()//checks to see if the motors have reached half a rotation
 {
-      if((enc_LW >= 224) || (enc_RW >= 224))
-      return true;
+    if((enc_LW >= 224) || (enc_RW >= 224))
+    return true;
     else
-      return false;
+    return false;
 }
 
 void Forward() //sets both motors direction to allow bot to move forward
@@ -327,14 +331,15 @@ void loop ()
   resetValues();
   resetEncoder();
   current_millis = millis();
-
-  distance = sensor.readRangeContinuousMillimeters();
-
+  temp_rw = enc_RW;
+  temp_lw = enc_LW;
      
-  while( distance >= /*desired distance val*/)
+  while( sensor.readRangeContinuousMillimeters() >= 25)
   {
       setSpeed(PIDLW(), PIDRW());
   }
+  dist_from_orig_RW = enc_RW - temp_rw;
+  dist_from_orig_LW = enc_LW - temp_lw;
 
  flag++;
  }
@@ -354,7 +359,7 @@ void loop ()
    resetEncoder();
    current_millis = millis();
      
-  while(/*encoder val*/>= /*desired tick(distance) val*/)
+  while(grab_dist_check() == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
@@ -377,13 +382,14 @@ closeGripper();
   resetEncoder();    
   current_millis = millis();
      
-  while(halfBotRot() == true)
+  while(halfBotRot() == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
   stopRobot();
   delay(5000);
 
+//move forward
   Forward();
   speedLW = 100;
   speedRW = 100;
@@ -393,12 +399,15 @@ closeGripper();
   resetEncoder();    
   current_millis = millis();
      
-  while(/*distance from origin in ticks*/ == false)
+  while(dist_orig_check(dist_from_orig_LW, dist_from_orig_RW) == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
 
- //move forward, detect object
+ 
+ 
+ 
+ //detect object
 
 
 
@@ -419,7 +428,7 @@ else // final step and reset
   resetEncoder();    
   current_millis = millis();
      
-  while(/*encoder val*/>= /*desired tick(distance) val*/)
+  while(grab_dist_check == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
