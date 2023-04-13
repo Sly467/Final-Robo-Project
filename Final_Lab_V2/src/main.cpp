@@ -18,8 +18,9 @@ VL53L0X sensor; //Lidar sensor
 uint16_t distance; // Stored distance
 
 Servo gripper;
+int pos = 0;
 int openNum = 45;
-int closeNum = 180;
+int closeNum = 120;
 const char gripPin = 9;
 
 int temp_rw = 0;
@@ -96,7 +97,7 @@ bool dist_orig_check(int x, int y)
 
 void openGripper()
 {
-  for(int pos = closeNum; pos >= openNum; pos--){
+  for(pos = closeNum; pos >= openNum; pos -= 1){
     gripper.write(pos);
     delay(15);
   }
@@ -104,7 +105,7 @@ void openGripper()
 
 void closeGripper()
 {
-  for (int pos = openNum; pos <= closeNum; pos++)
+  for (pos = openNum; pos <= closeNum; pos += 1)
   {
     gripper.write(pos);
     delay(15);
@@ -313,9 +314,10 @@ sensor.startContinuous();
  //attachInterrupt(digitalPinToInterrupt(3), a1, FALLING);
  pinMode (46, INPUT);
  pinMode (44, INPUT);
+ gripper.write(140);
 }
-
-/*void loop()
+c
+void loop()
 {
     while (digitalRead(buttonpin)== LOW)
     {
@@ -334,9 +336,9 @@ sensor.startContinuous();
     }
     
 
-}*/
+}
 
-
+/*
 void loop ()
 {
  // digital interface will be assigned a value of pin 3 to read val
@@ -475,4 +477,4 @@ else // final step and reset
 flag = 0;
 }
 
-}
+}*/
