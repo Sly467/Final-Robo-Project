@@ -17,6 +17,10 @@ Speed using a PID feedback loop. DATE: 4/10/2023
 VL53L0X sensor; //Lidar sensor
 uint16_t distance; // Stored distance
 
+int buttonpin = 13; // define D0 Sensor Interface
+bool val;// define numeric variables val
+int flag = 0;
+
 Servo gripper;
 int pos = 0;
 int openNum = 45;
@@ -299,10 +303,6 @@ digitalWrite(AIN2,1);
 digitalWrite(BIN1,1);
 digitalWrite(BIN2,0);
 }
-//int Led = 13 ;// define LED Interface
-int buttonpin = 12; // define D0 Sensor Interface
-bool val;// define numeric variables val
-int flag = 0;
 
 void setup ()
 {
@@ -310,6 +310,7 @@ gripper.attach(9);
 Serial.begin(115200);
 sensor.init();
 sensor.startContinuous();
+Wire.begin();
  pinMode (buttonpin, INPUT) ;// output interface D0 is defined sensor
  //attachInterrupt(digitalPinToInterrupt(3), a1, FALLING);
  pinMode (46, INPUT);
@@ -350,6 +351,8 @@ void loop ()
  
  if (flag == 0) //First Step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //driver forward, detect object
   Forward();
   speedLW = 100;
@@ -362,7 +365,7 @@ void loop ()
   temp_rw = enc_RW;
   temp_lw = enc_LW;
      
-  while( sensor.readRangeContinuousMillimeters() >= 25)
+  while( sensor.readRangeContinuousMillimeters() >= 200)
   {
       Serial.println(sensor.readRangeContinuousMillimeters());
       setSpeed(PIDLW(), PIDRW());
@@ -375,6 +378,8 @@ void loop ()
  
  else if (flag == 1) //Second Step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //open gripper 
  openGripper();
  
@@ -401,6 +406,8 @@ closeGripper();
 
  else if (flag == 2) // third step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //turn around, move forward, detect object
   Rotate_CCW();
   speedLW = 100;
@@ -440,6 +447,8 @@ closeGripper();
 
 else // final step and reset
 {
+  Serial.println(flag);
+  Serial.println("high");
   //open gripper
   openGripper();
   //reverse short distance
