@@ -316,9 +316,13 @@ Wire.begin();
  pinMode (46, INPUT);
  pinMode (44, INPUT);
  gripper.write(140);
+ pinMode(interruptPinLW, INPUT_PULLUP);
+ pinMode(interruptPinRW, INPUT_PULLUP);
+ attachInterrupt(digitalPinToInterrupt(interruptPinLW), LW, RISING);
+ attachInterrupt(digitalPinToInterrupt(interruptPinRW), RW, RISING);
 }
-c
-void loop()
+
+/*void loop()
 {
     while (digitalRead(buttonpin)== LOW)
     {
@@ -338,8 +342,8 @@ void loop()
     
 
 }
+*/
 
-/*
 void loop ()
 {
  // digital interface will be assigned a value of pin 3 to read val
@@ -348,6 +352,12 @@ void loop ()
  {
    stopRobot();
  }
+ 
+ /*while(millis()%10 == 0)//stops robot function, waits for clap or yell
+ {
+   stopRobot();
+   delay(10000);
+ }*/
  
  if (flag == 0) //First Step
  {
@@ -367,7 +377,9 @@ void loop ()
      
   while( sensor.readRangeContinuousMillimeters() >= 200)
   {
+      delay(20);
       Serial.println(sensor.readRangeContinuousMillimeters());
+      delay(20);
       setSpeed(PIDLW(), PIDRW());
   }
   dist_from_orig_RW = enc_RW - temp_rw;
@@ -395,6 +407,7 @@ void loop ()
      
   while(grab_dist_check() == false)
   {
+    Serial.println(enc_RW);
       setSpeed(PIDLW(), PIDRW());
   }
   stopRobot();
@@ -486,4 +499,4 @@ else // final step and reset
 flag = 0;
 }
 
-}*/
+}
