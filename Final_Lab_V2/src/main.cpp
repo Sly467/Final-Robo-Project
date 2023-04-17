@@ -11,14 +11,20 @@ Speed using a PID feedback loop. DATE: 4/10/2023
 #include <math.h>
 #include <VL53L0X.h>
 #include <Servo.h>
+#include <Wire.h>
 
 
 VL53L0X sensor; //Lidar sensor
 uint16_t distance; // Stored distance
 
+int buttonpin = 13; // define D0 Sensor Interface
+bool val;// define numeric variables val
+int flag = 0;
+
 Servo gripper;
+int pos = 0;
 int openNum = 45;
-int closeNum = 180;
+int closeNum = 120;
 const char gripPin = 9;
 
 int temp_rw = 0;
@@ -26,11 +32,6 @@ int temp_lw = 0;
 
 int dist_from_orig_RW = 0;
 int dist_from_orig_LW = 0;
-
-//int Led = 13 ;// define LED Interface
-int buttonpin = 3; // define D0 Sensor Interface
-bool val;// define numeric variables val
-int flag = 0;
 
 volatile unsigned int enc_LW; // LW Encoder tick counter
 volatile unsigned int enc_RW; // RW Encoder tick counter
@@ -100,7 +101,7 @@ bool dist_orig_check(int x, int y)
 
 void openGripper()
 {
-  for(int pos = closeNum; pos <= openNum; pos++){
+  for(pos = closeNum; pos >= openNum; pos -= 1){
     gripper.write(pos);
     delay(15);
   }
@@ -108,7 +109,7 @@ void openGripper()
 
 void closeGripper()
 {
-  for (int pos = openNum; pos >= closeNum; pos--)
+  for (pos = openNum; pos <= closeNum; pos += 1)
   {
     gripper.write(pos);
     delay(15);
@@ -279,6 +280,13 @@ digitalWrite(AIN2,1);
 digitalWrite(BIN1,0);
 digitalWrite(BIN2,1);
 }
+void Reverse() //sets both motors direction to allow bot to move forward
+{
+digitalWrite(AIN1,1);
+digitalWrite(AIN2,0);
+digitalWrite(BIN1,1);
+digitalWrite(BIN2,0);
+}
 
 void Rotate_CCW() //sets both motors direction to allow bot to rotate counter clockwise
 {
@@ -295,22 +303,47 @@ digitalWrite(AIN2,1);
 digitalWrite(BIN1,1);
 digitalWrite(BIN2,0);
 }
-//int Led = 13 ;// define LED Interface
-int buttonpin = 3; // define D0 Sensor Interface
-bool val;// define numeric variables val
-int flag = 0;
 
 void setup ()
 {
-  gripper.attach(9);
+gripper.attach(9);
 Serial.begin(115200);
 sensor.init();
 sensor.startContinuous();
+Wire.begin();
  pinMode (buttonpin, INPUT) ;// output interface D0 is defined sensor
  //attachInterrupt(digitalPinToInterrupt(3), a1, FALLING);
  pinMode (46, INPUT);
  pinMode (44, INPUT);
+ gripper.write(140);
+ pinMode(interruptPinLW, INPUT_PULLUP);
+ pinMode(interruptPinRW, INPUT_PULLUP);
+ attachInterrupt(digitalPinToInterrupt(interruptPinLW), LW, RISING);
+ attachInterrupt(digitalPinToInterrupt(interruptPinRW), RW, RISING);
 }
+
+/*void loop()
+{
+    while (digitalRead(buttonpin)== LOW)
+    {
+      
+    }
+    if(flag == 0)
+    {
+      openGripper();
+      flag++;
+    }
+
+    else if (flag == 1)
+    {
+      closeGripper();
+      flag--;
+    }
+    
+
+}
+*/
+
 void loop ()
 {
  // digital interface will be assigned a value of pin 3 to read val
@@ -320,8 +353,16 @@ void loop ()
    stopRobot();
  }
  
+ /*while(millis()%10 == 0)//stops robot function, waits for clap or yell
+ {
+   stopRobot();
+   delay(10000);
+ }*/
+ 
  if (flag == 0) //First Step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //driver forward, detect object
   Forward();
   speedLW = 100;
@@ -334,8 +375,11 @@ void loop ()
   temp_rw = enc_RW;
   temp_lw = enc_LW;
      
-  while( sensor.readRangeContinuousMillimeters() >= 25)
+  while( sensor.readRangeContinuousMillimeters() >= 200)
   {
+      delay(20);
+      Serial.println(sensor.readRangeContinuousMillimeters());
+      delay(20);
       setSpeed(PIDLW(), PIDRW());
   }
   dist_from_orig_RW = enc_RW - temp_rw;
@@ -346,6 +390,8 @@ void loop ()
  
  else if (flag == 1) //Second Step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //open gripper 
  openGripper();
  
@@ -361,6 +407,7 @@ void loop ()
      
   while(grab_dist_check() == false)
   {
+    Serial.println(enc_RW);
       setSpeed(PIDLW(), PIDRW());
   }
   stopRobot();
@@ -372,6 +419,8 @@ closeGripper();
 
  else if (flag == 2) // third step
  {
+  Serial.println(flag);
+  Serial.println("high");
  //turn around, move forward, detect object
   Rotate_CCW();
   speedLW = 100;
@@ -403,23 +452,20 @@ closeGripper();
   {
       setSpeed(PIDLW(), PIDRW());
   }
-
- 
- 
- 
- //detect object
-
-
+  dist_from_orig_LW = 0;
+  dist_from_orig_RW = 0;
 
  flag++;
  }
 
 else // final step and reset
 {
+  Serial.println(flag);
+  Serial.println("high");
   //open gripper
   openGripper();
   //reverse short distance
-  Forward();
+  Reverse();
   speedLW = 100;
   speedRW = 100;
   setSpeed(speedLW, speedRW);
