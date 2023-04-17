@@ -91,9 +91,9 @@ const double b = 78.7402; // side b of triangle in inches
 
 int stopCounter = 0; //counter in charge of changing opperation of the bot
 
-bool dist_orig_check(int x, int y)
+bool dist_orig_check()
 {
-    if((enc_LW >= x) || (enc_RW >= y))
+    if((enc_LW >= dist_from_orig_LW) || (enc_RW >= dist_from_orig_RW))
     return true;
     else
     return false;
@@ -320,6 +320,14 @@ Wire.begin();
  pinMode(interruptPinRW, INPUT_PULLUP);
  attachInterrupt(digitalPinToInterrupt(interruptPinLW), LW, RISING);
  attachInterrupt(digitalPinToInterrupt(interruptPinRW), RW, RISING);
+
+pinMode(PWMA, OUTPUT);
+pinMode(AIN1, OUTPUT);
+pinMode(AIN2, OUTPUT);
+
+pinMode(PWMB, OUTPUT);
+pinMode(BIN1, OUTPUT);
+pinMode(BIN2, OUTPUT);
 }
 
 /*void loop()
@@ -436,7 +444,7 @@ closeGripper();
       setSpeed(PIDLW(), PIDRW());
   }
   stopRobot();
-  delay(5000);
+  delay(3000);
 
 //move forward
   Forward();
@@ -448,7 +456,7 @@ closeGripper();
   resetEncoder();    
   current_millis = millis();
      
-  while(dist_orig_check(dist_from_orig_LW, dist_from_orig_RW) == false)
+  while(dist_orig_check() == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
@@ -474,13 +482,12 @@ else // final step and reset
   resetEncoder();    
   current_millis = millis();
      
-  while(grab_dist_check == false)
+  while(grab_dist_check() == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
   stopRobot();
-  //close gripper
-  closeGripper();
+  delay(3000);
   //turn around
   Rotate_CCW();
   speedLW = 100;
@@ -491,11 +498,15 @@ else // final step and reset
   resetEncoder();    
   current_millis = millis();
      
-  while(halfBotRot() == true)
+  while(halfBotRot() == false)
   {
       setSpeed(PIDLW(), PIDRW());
   }
-
+  stopRobot();
+  delay(1000);
+ //close gripper
+  closeGripper();
+  delay(3000);
 flag = 0;
 }
 
